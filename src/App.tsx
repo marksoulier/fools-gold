@@ -189,7 +189,7 @@ function App() {
 							return;
 						}
 						await delay(FRAMERATE / 1000);
-						//setScreenState
+						setScreenState(screen);
 					}
 					break;
 			}
@@ -198,7 +198,7 @@ function App() {
 
 	return (
 		<div>
-			{foolsGoldSprite.map((row) => (
+			{screenState.map((row) => (
 				<div style={{ display: "flex", flexDirection: "row" }}>
 					{row.map((pixel) => {
 						console.log(`pixel ${pixel}`);
