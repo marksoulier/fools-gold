@@ -96,7 +96,12 @@ function App() {
 		return screen;
 	};
 
-	const gameLoop = async () => {
+	useEffect(() => {
+		gameLoop();
+	}, []);
+
+	async function gameLoop() {
+		console.log("init loop");
 		// State to keep track of vizualization, downClicked
 		// State to keep track of each button press, returnClicked, upClicked, downClicked
 
@@ -104,6 +109,7 @@ function App() {
 
 		//game loop always going
 		while (true) {
+			console.log("looping");
 			const screen = wipeScreen();
 			let currentTime = performance.now(); // Current time of the round loop
 			// Level, in mobx store
@@ -194,7 +200,7 @@ function App() {
 					break;
 			}
 		}
-	};
+	}
 
 	return (
 		<div>
