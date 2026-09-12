@@ -58,7 +58,28 @@ const foolsGoldSprite = await loadSprite(foolPNG);
 function App() {
 	const [screenState, setScreenState] = useState<sprite>([]);
 
-	const render = (sprite: sprite, position: position) => {};
+	const render = (sprite: sprite, position: position, screen: sprite) => {
+		const spriteOffset: position = [-12, -12];
+		for (let i = 0; i < 24; i++) {
+			for (let j = 0; j < 24; j++) {
+				// get the coords for each pixel: position + localPixel + offset
+				const pixelPosition: position = [
+					position[0] + i + spriteOffset[0],
+					position[1] + j + spriteOffset[1],
+				];
+				// clamp to bounds of the screen
+				if (
+					pixelPosition[0] < 0 ||
+					pixelPosition[0] >= 144 ||
+					pixelPosition[1] < 0 ||
+					pixelPosition[1] >= 160
+				)
+					return;
+
+				screen[pixelPosition[0]][pixelPosition[1]] = sprite[i][j];
+			}
+		}
+	};
 
 	const gameLoop = async () => {
 		// State to keep track of vizualization, downClicked
