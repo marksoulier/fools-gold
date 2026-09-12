@@ -3,18 +3,20 @@ import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
+import {gameStore} from './GameStore'
 
 
 function GameLoop() {
   // State to keep track of vizualization, downClicked
-  const [gameArray, setGameArray] = useState([])
   // State to keep track of each button press, returnClicked, upClicked, downClicked
+
+  //game loop always going
   while (true) {
     let currentTime = performance.now() // Current time of the round loop
     // Level, in mobx store
-    const speed = 144 + level * 5; //number of pixals to move along
+    const speed = 144 + gameStore.level * 5; //number of pixals to move along
     // Set number of cups dependent on level
-
+    gameStore.cups.forEach()
 
     // single round logic
 
@@ -26,7 +28,9 @@ function GameLoop() {
 
 
   
-    ///////MOVING PHASE /////////
+    ///////MOVING PHASE ///////// 
+
+
     const roundTime = 5 // 5 seconds is how long they are all moving around the screen
     const roundStartTime = performance.now() //Getting the start time of the round loop
     while (currentTime < roundStartTime + roundTime*1000) {
@@ -46,8 +50,6 @@ function GameLoop() {
         //vizualizations
       }
     }
-
-
 
     ///////SELECTION PHASE /////////
 

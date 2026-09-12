@@ -8,7 +8,7 @@ export interface Cup {
 }
 
 
-export class GameStore {
+class GameStore {
 
   // The position of the cup is its index within the array
   cups: Cup[] = [];
@@ -19,4 +19,18 @@ export class GameStore {
   constructor() {
     makeAutoObservable(this);
   }
+
+  getlevel()  {
+    return this.level;
+  }
+
+  setlevel(level: number) {
+    this.level = level;
+  }
+
+  getcups() {
+    return this.cups;
+  }
 }
+
+export const gameStore = new GameStore();
