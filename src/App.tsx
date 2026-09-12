@@ -2,49 +2,60 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import coinPNG from "../src/assets/coin.png";
-import {GameStore, gameStore, type Cup} from './GameStore'
+import {GameStore,  gameStore, type Cup } from "./GameStore";
+
+const delay: (arg0: number) => Promise<null> = (ms) =>
+	new Promise((resolve) => setTimeout(resolve, ms));
+
+const FRAMERATE = 30;
+
+const sprite = () => {
+	const img = new Image(24, 24);
+	const pixels: number[][][] = [];
+	img.onload = () => {
+		const canvas = document.createElement("canvas");
+		canvas.width = img.width;
+		canvas.height = img.height;
+		const context = canvas.getContext("2d");
+		if (context == null) return;
+		context.drawImage(img, 0, 0);
+		const rawPixels = context.getImageData(0, 0, img.width, img.height).data;
+		const pixelsFlat: number[][] = [];
+		for (let i = 0; i < rawPixels.length / 4; i++) {
+			const color: number[] = [];
+			for (let j = 0; j < 4; j++) {
+				const index = i * 4 + j;
+				color.push(rawPixels[index]);
+			}
+			pixelsFlat.push(color);
+		}
+
+		for (let i = 0; i < pixelsFlat.length / 24; i++) {
+			const row: number[][] = [];
+			for (let j = 0; j < 24; j++) {
+				const index = i * 24 + j;
+				row.push(pixelsFlat[index]);
+			}
+			pixels.push(row);
+		}
+	};
+	img.src = coinPNG;
+	return pixels;
+};
 
 function App() {
 	const [coinPixelState, setCoinPixelState] = useState<number[][][]>([]);
+	const [screenState, setScreenState] = useState<number[][][]>([]);
 
-	useEffect(() => {
-		const img = new Image(24, 24);
-		console.log("test");
-		img.onload = () => {
-			console.log("onload");
-			const canvas = document.createElement("canvas");
-			canvas.width = img.width;
-			canvas.height = img.height;
-			const context = canvas.getContext("2d");
-			if (context == null) return;
-			context.drawImage(img, 0, 0);
-			const rawPixels = context.getImageData(0, 0, img.width, img.height).data;
-			const pixelsFlat: number[][] = [];
-			for (let i = 0; i < rawPixels.length / 4; i++) {
-				const color: number[] = [];
-				for (let j = 0; j < 4; j++) {
-					const index = i * 4 + j;
-					color.push(rawPixels[index]);
-				}
-				pixelsFlat.push(color);
-				console.log("yo");
-			}
-			const pixels: number[][][] = [];
-			for (let i = 0; i < pixelsFlat.length / 24; i++) {
-				const row: number[][] = [];
-				for (let j = 0; j < 24; j++) {
-					const index = i * 24 + j;
-					row.push(pixelsFlat[index]);
-				}
-				pixels.push(row);
-			}		setCoinPixelState(pixels);
-		};
-		img.src = coinPNG;
-	}, []);
+	const gameLoop = async () => {
+		while (true) {
+			await delay(1000 / FRAMERATE);
+		}
+	};
 
 	return (
 		<div>
-			{coinPixelState.map((row) => (
+			{screenState.map((row) => (
 				<div style={{ display: "flex", flexDirection: "row" }}>
 					{row.map((pixel) => {
 						console.log(`pixel ${pixel}`);
