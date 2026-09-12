@@ -13,13 +13,15 @@ export interface Cup {
 }
 
 
-class GameStore {
+export class GameStore {
 
   // The position of the cup is its index within the array
   cups: Cup[] = [];
   selectedCup: number = 0;
   gameArray: Pixel[][] = [];
   level: number = 1;
+  hiddenMode: boolean = false;
+  pressingEnter: boolean = false;
 
   constructor() {
     makeAutoObservable(this);
