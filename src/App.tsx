@@ -2,10 +2,16 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import coinPNG from "../src/assets/coin.png";
-import {gameStore} from './GameStore'
+import { gameStore } from "./GameStore";
+
+const delay: (arg0: number) => Promise<null> = (ms) =>
+	new Promise((resolve) => setTimeout(resolve, ms));
+
+const FRAMERATE = 30;
 
 function App() {
 	const [coinPixelState, setCoinPixelState] = useState<number[][][]>([]);
+	const [screenState, setScreenState] = useState<number[][][]>([]);
 
 	useEffect(() => {
 		const img = new Image(24, 24);
@@ -37,14 +43,21 @@ function App() {
 					row.push(pixelsFlat[index]);
 				}
 				pixels.push(row);
-			}		setCoinPixelState(pixels);
+			}
+			setCoinPixelState(pixels);
 		};
 		img.src = coinPNG;
 	}, []);
 
+	const gameLoop = async () => {
+		while (true) {
+			await delay(1000 / FRAMERATE);
+		}
+	};
+
 	return (
 		<div>
-			{coinPixelState.map((row) => (
+			{screenState.map((row) => (
 				<div style={{ display: "flex", flexDirection: "row" }}>
 					{row.map((pixel) => {
 						console.log(`pixel ${pixel}`);
@@ -66,64 +79,5 @@ function App() {
 		</div>
 	);
 }
-
-
-
-
-function GameLoop() {
-  // State to keep track of vizualization, downClicked
-  // State to keep track of each button press, returnClicked, upClicked, downClicked
-
-  //game loop always going
-  while (true) {
-    let currentTime = performance.now() // Current time of the round loop
-    // Level, in mobx store
-    const speed = 144 + gameStore.level * 5; //number of pixals to move along
-    // Set number of cups dependent on level
-    gameStore.cups.forEach()
-
-    // single round logic
-
-    ///////DISPLAY PHASE /////////
-
-    //randomly select n number of cups to have gold, display gold
-    const 
-
-
-
-  
-    ///////MOVING PHASE ///////// 
-
-
-    const roundTime = 5 // 5 seconds is how long they are all moving around the screen
-    const roundStartTime = performance.now() //Getting the start time of the round loop
-    while (currentTime < roundStartTime + roundTime*1000) {
-      // Keep array of destinations of each cup
-      // for each of the cups move cup towards random position, take difference in x and y
-      for cup in cups:
-        const deltaX = 
-        const deltaY = 
-        const distanceToDestination = Math.sqrt(deltaX**2 + deltaY**2);
-        const y = speed*deltaX/distanceToDestination
-        const x = speed*deltaY/distanceToDestination
-      // if at final position give a new final position
-      // if currentTime is within half second of termination time give final corrediante positions
-      
-
-      return {
-        //vizualizations
-      }
-    }
-
-    ///////SELECTION PHASE /////////
-
-
-    return {
-      //vizualizations
-    }
-  }
-}
-
-	
 
 export default App;
