@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import coinPNG from "../src/assets/coin.png";
+import foolPNG from "../src/assets/fools_gold.png";
 import { gameStore } from "./GameStore";
 
 const delay: (arg0: number) => Promise<null> = (ms) =>
@@ -9,7 +10,7 @@ const delay: (arg0: number) => Promise<null> = (ms) =>
 
 const FRAMERATE = 30;
 
-const sprite = () => {
+const loadSprite = (src: string) => {
 	const img = new Image(24, 24);
 	const pixels: number[][][] = [];
 	img.onload = () => {
@@ -39,9 +40,12 @@ const sprite = () => {
 			pixels.push(row);
 		}
 	};
-	img.src = coinPNG;
+	img.src = src;
 	return pixels;
 };
+
+const coinSprite = loadSprite(coinPNG);
+const foolsGoldSprite = loadSprite(foolPNG);
 
 function App() {
 	const [coinPixelState, setCoinPixelState] = useState<number[][][]>([]);
