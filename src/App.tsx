@@ -74,7 +74,15 @@ function App() {
 			// Set number of cups dependent on level
 			// 1 gold, if level above 3 then 2 gold, if level about 6 then 3 gold
 			const cupWithGold = getRandomIntInclusive(0, 8);
-			gameStore.cups[cupWithGold].gold = true;
+            gameStore.cups[cupWithGold].gold = true;
+
+            // Wait until Enter is pressed to progress past the "MENU" phase
+			if (!gameStore.pressingEnter) {
+				continue;
+            }
+
+            gameStore.phase = "SETUP";
+
 
 			// single round logic
 
