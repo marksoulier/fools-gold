@@ -9,6 +9,9 @@ const delay: (arg0: number) => Promise<null> = (ms) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
 
 const FRAMERATE = 30;
+const SCREEN_WIDTH = 160;
+const SCREEN_HEIGHT = 144;
+const BACKGROUND_COLOR = [250, 232, 188, 255];
 
 type sprite = number[][][];
 type position = [number, number];
@@ -70,15 +73,27 @@ function App() {
 				// clamp to bounds of the screen
 				if (
 					pixelPosition[0] < 0 ||
-					pixelPosition[0] >= 144 ||
+					pixelPosition[0] >= SCREEN_HEIGHT ||
 					pixelPosition[1] < 0 ||
-					pixelPosition[1] >= 160
+					pixelPosition[1] >= SCREEN_WIDTH
 				)
 					return;
 
 				screen[pixelPosition[0]][pixelPosition[1]] = sprite[i][j];
 			}
 		}
+	};
+
+	const wipeScreen = () => {
+		const screen: sprite = [];
+		for (let i = 0; i < SCREEN_HEIGHT; i++) {
+			const row: number[][] = [];
+			for (let j = 0; j < SCREEN_WIDTH; j++) {
+				row.push(BACKGROUND_COLOR);
+			}
+			screen.push(row);
+		}
+		return screen;
 	};
 
 	const gameLoop = async () => {
@@ -89,21 +104,21 @@ function App() {
 
 		//game loop always going
 		while (true) {
+			const screen = wipeScreen();
 			let currentTime = performance.now(); // Current time of the round loop
 			// Level, in mobx store
 			const speed = 2 + gameStore.level * 3; //number of pixals to move along
 			// Set number of cups dependent on level
 			// 1 gold, if level above 3 then 2 gold, if level about 6 then 3 gold
 			const cupWithGold = getRandomIntInclusive(0, 8);
-            gameStore.cups[cupWithGold].gold = true;
+			gameStore.cups[cupWithGold].gold = true;
 
-            // Wait until Enter is pressed to progress past the "MENU" phase
+			// Wait until Enter is pressed to progress past the "MENU" phase
 			if (!gameStore.pressingEnter) {
 				continue;
-            }
+			}
 
-            gameStore.phase = "SETUP";
-
+			gameStore.phase = "SETUP";
 
 			// single round logic
 
