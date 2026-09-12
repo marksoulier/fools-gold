@@ -10,11 +10,14 @@ const delay: (arg0: number) => Promise<null> = (ms) =>
 
 const FRAMERATE = 30;
 
+type sprite = number[][][];
+type position = [number, number];
+
 const loadSprite = async (src: string) => {
 	const img = new Image(24, 24);
-	const pixels: number[][][] = [];
-	let resolver: (value: number[][][]) => unknown = () => {};
-	const pixelPromise = new Promise<number[][][]>((resolve) => {
+	const pixels: sprite = [];
+	let resolver: (value: sprite) => unknown = () => {};
+	const pixelPromise = new Promise<sprite>((resolve) => {
 		resolver = resolve;
 	});
 	img.onload = () => {
@@ -53,7 +56,9 @@ const coinSprite = await loadSprite(coinPNG);
 const foolsGoldSprite = await loadSprite(foolPNG);
 
 function App() {
-	const [screenState, setScreenState] = useState<number[][][]>([]);
+	const [screenState, setScreenState] = useState<sprite>([]);
+
+	const render = (sprite: sprite, position: position) => {};
 
 	const gameLoop = async () => {
 		// State to keep track of vizualization, downClicked
@@ -137,6 +142,7 @@ function App() {
 				return;
 			}
 			await delay(FRAMERATE / 1000);
+			//setScreenState
 		}
 	};
 
