@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/correctness/useJsxKeyInIterable: <explanation> */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useState } from "react";
 import "./App.css";
 import coinPNG from "../src/assets/coin.png";
 import foolPNG from "../src/assets/fools_gold.png";
@@ -55,11 +55,13 @@ const loadSprite = async (src: string) => {
 	return await pixelPromise;
 };
 
-const coinSprite = await loadSprite(coinPNG);
-const foolsGoldSprite = await loadSprite(foolPNG);
+// const coinSprite = await loadSprite(coinPNG);
+// const foolsGoldSprite = await loadSprite(foolPNG);
 
 function App() {
 	const [screenState, setScreenState] = useState<sprite>([]);
+
+	console.log("app");
 
 	const render = (sprite: sprite, position: position, screen: sprite) => {
 		const spriteOffset: position = [-12, -12];
@@ -97,6 +99,7 @@ function App() {
 	};
 
 	useEffect(() => {
+		console.log("event");
 		gameLoop();
 	}, []);
 
@@ -194,7 +197,7 @@ function App() {
 						} else {
 							return;
 						}
-						await delay(FRAMERATE / 1000);
+						await delay(1000);
 						setScreenState(screen);
 					}
 					break;
