@@ -17,13 +17,13 @@ export class GameStore {
 	gameArray: Pixel[][] = [];
 	level: number = 1;
 	phase: Phase = "MENU";
-	hiddenMode: boolean = false;
 	pressingEnter: boolean = false;
 	pressingUp: boolean = false;
 	pressingDown: boolean = false;
 	pressingLeft: boolean = false;
 	pressingRight: boolean = false;
 	speed: number = 0;
+	gameStartTime: number = 0;
 
 	constructor() {
 		window.addEventListener("keydown", (e) => {
