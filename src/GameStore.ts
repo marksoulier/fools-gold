@@ -23,6 +23,7 @@ export class GameStore {
 	pressingDown: boolean = false;
 	pressingLeft: boolean = false;
 	pressingRight: boolean = false;
+	speed: number = 0;
 
 	constructor() {
 		window.addEventListener("keydown", (e) => {

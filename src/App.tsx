@@ -55,153 +55,157 @@ const loadSprite = async (src: string) => {
 	return await pixelPromise;
 };
 
-// const coinSprite = await loadSprite(coinPNG);
-// const foolsGoldSprite = await loadSprite(foolPNG);
+const coinSprite = await loadSprite(coinPNG);
+const foolsGoldSprite = await loadSprite(foolPNG);
+
+const render = (sprite: sprite, position: position, screen: sprite) => {
+	const spriteOffset: position = [-12, -12];
+	for (let i = 0; i < 24; i++) {
+		for (let j = 0; j < 24; j++) {
+			// get the coords for each pixel: position + localPixel + offset
+			const pixelPosition: position = [
+				position[0] + i + spriteOffset[0],
+				position[1] + j + spriteOffset[1],
+			];
+			// clamp to bounds of the screen
+			if (
+				pixelPosition[0] < 0 ||
+				pixelPosition[0] >= SCREEN_HEIGHT ||
+				pixelPosition[1] < 0 ||
+				pixelPosition[1] >= SCREEN_WIDTH
+			)
+				return;
+
+			screen[pixelPosition[0]][pixelPosition[1]] = sprite[i][j];
+		}
+	}
+};
+
+const wipeScreen = () => {
+	const screen: sprite = [];
+	for (let i = 0; i < SCREEN_HEIGHT; i++) {
+		const row: number[][] = [];
+		for (let j = 0; j < SCREEN_WIDTH; j++) {
+			row.push(BACKGROUND_COLOR);
+		}
+		screen.push(row);
+	}
+	return screen;
+};
+const roundTime = 5; // 5 seconds is how long they are all moving around the screen
 
 function App() {
 	const [screenState, setScreenState] = useState<sprite>([]);
 
 	console.log("app");
 
-	const render = (sprite: sprite, position: position, screen: sprite) => {
-		const spriteOffset: position = [-12, -12];
-		for (let i = 0; i < 24; i++) {
-			for (let j = 0; j < 24; j++) {
-				// get the coords for each pixel: position + localPixel + offset
-				const pixelPosition: position = [
-					position[0] + i + spriteOffset[0],
-					position[1] + j + spriteOffset[1],
-				];
-				// clamp to bounds of the screen
-				if (
-					pixelPosition[0] < 0 ||
-					pixelPosition[0] >= SCREEN_HEIGHT ||
-					pixelPosition[1] < 0 ||
-					pixelPosition[1] >= SCREEN_WIDTH
-				)
-					return;
-
-				screen[pixelPosition[0]][pixelPosition[1]] = sprite[i][j];
-			}
-		}
-	};
-
-	const wipeScreen = () => {
-		const screen: sprite = [];
-		for (let i = 0; i < SCREEN_HEIGHT; i++) {
-			const row: number[][] = [];
-			for (let j = 0; j < SCREEN_WIDTH; j++) {
-				row.push(BACKGROUND_COLOR);
-			}
-			screen.push(row);
-		}
-		return screen;
-	};
-
 	useEffect(() => {
 		console.log("event");
+		initStore(gameStore);
 		gameLoop();
 	}, []);
 
 	async function gameLoop() {
-		console.log("init loop");
-		// State to keep track of vizualization, downClicked
-		// State to keep track of each button press, returnClicked, upClicked, downClicked
+		const currentLoopStartTime = performance.now();
 
-		initStore(gameStore);
+		const loop = () => {
+			const nextLoopStartTime = currentLoopStartTime + 1000 / FRAMERATE;
+			const now = performance.now();
+			if (now > nextLoopStartTime) gameLoop();
+			else
+				setTimeout(() => {
+					gameLoop();
+				}, now - nextLoopStartTime);
+		};
 
-		//game loop always going
-		while (true) {
-			console.log("looping");
-			const screen = wipeScreen();
-			let currentTime = performance.now(); // Current time of the round loop
-			// Level, in mobx store
-			const speed = 2 + gameStore.level * 3; //number of pixals to move along
-			// Set number of cups dependent on level
-			// 1 gold, if level above 3 then 2 gold, if level about 6 then 3 gold
-			const cupWithGold = getRandomIntInclusive(0, 8);
-			gameStore.cups[cupWithGold].gold = true;
+		console.log("looping");
+		const screen = wipeScreen();
+		// Level, in mobx store
 
-			switch (gameStore.phase) {
-				case "MENU":
-					if (!gameStore.pressingEnter) {
-						continue;
-					}
-					gameStore.phase = "SETUP";
+		switch (gameStore.phase) {
+			case "MENU":
+				if (!gameStore.pressingEnter) {
+					render(foolsGoldSprite, [100, 50], screen);
+					setScreenState(screen);
+					loop();
 					break;
-				case "SETUP":
-					{
-						//Run for 3 seconds showing them the gold before hidding
-						const displayStartTime = performance.now();
-						while (currentTime < displayStartTime + 3 * 1000) {
-							currentTime = performance.now();
-						}
-						gameStore.hiddenMode = true;
-					}
-					break;
-				case "PLAYING":
-					{
-						const roundTime = 5; // 5 seconds is how long they are all moving around the screen
-						const roundStartTime = performance.now(); //Getting the start time of the round loop
-						while (currentTime < roundStartTime + roundTime * 1000) {
-							// Keep array of destinations of each cup
-							// for each of the cups move cup towards random position, take difference in x and y
-							for (const cup of gameStore.cups) {
-								// if destination is equal to position give new destination
-								if (
-									cup.destination.x === cup.position.x &&
-									cup.destination.y === cup.position.y
-								) {
-									const randomX = getRandomIntInclusive(20, 140);
-									const randomY = getRandomIntInclusive(20, 124);
-									cup.destination.x = randomX;
-									cup.destination.y = randomY;
-								}
+				}
+				gameStore.phase = "SETUP";
+				break;
+			case "SETUP":
+				{
+					gameStore.speed = 2 + gameStore.level * 3; //number of pixals to move along
+					// Set number of cups dependent on level
+					// 1 gold, if level above 3 then 2 gold, if level about 6 then 3 gold
+					const cupWithGold = getRandomIntInclusive(0, 8);
+					gameStore.cups[cupWithGold].gold = true;
+					render(coinSprite, [100, 50], screen);
+					setScreenState(screen);
+					await delay(3000);
+					gameStore.hiddenMode = true;
+				}
+				break;
+			// case "PLAYING":
+			// 	{
+			// 		const roundStartTime = performance.now(); //Getting the start time of the round loop
+			// 		while (currentTime < roundStartTime + roundTime * 1000) {
+			// 			// Keep array of destinations of each cup
+			// 			// for each of the cups move cup towards random position, take difference in x and y
+			// 			for (const cup of gameStore.cups) {
+			// 				// if destination is equal to position give new destination
+			// 				if (
+			// 					cup.destination.x === cup.position.x &&
+			// 					cup.destination.y === cup.position.y
+			// 				) {
+			// 					const randomX = getRandomIntInclusive(20, 140);
+			// 					const randomY = getRandomIntInclusive(20, 124);
+			// 					cup.destination.x = randomX;
+			// 					cup.destination.y = randomY;
+			// 				}
 
-								const deltaX = cup.destination.x - cup.position.x;
-								const deltaY = cup.destination.y - cup.position.y;
-								const distanceToDestination = Math.sqrt(
-									deltaX ** 2 + deltaY ** 2,
-								);
-								const y = (speed * deltaX) / distanceToDestination;
-								const x = (speed * deltaY) / distanceToDestination;
-								cup.position.x += x;
-								cup.position.y += y;
-							}
-							// if currentTime is within half second of termination time give final corrediante positions
+			// 				const deltaX = cup.destination.x - cup.position.x;
+			// 				const deltaY = cup.destination.y - cup.position.y;
+			// 				const distanceToDestination = Math.sqrt(
+			// 					deltaX ** 2 + deltaY ** 2,
+			// 				);
+			// 				const y = (speed * deltaX) / distanceToDestination;
+			// 				const x = (speed * deltaY) / distanceToDestination;
+			// 				cup.position.x += x;
+			// 				cup.position.y += y;
+			// 			}
+			// 			// if currentTime is within half second of termination time give final corrediante positions
 
-							currentTime = performance.now();
-						}
-					}
-					break;
-				case "SELECTION":
-					{
-						let correctSelection = false;
+			// 			currentTime = performance.now();
+			// 		}
+			// 	}
+			// 	break;
+			// case "SELECTION":
+			// 	{
+			// 		let correctSelection = false;
 
-						gameStore.selectedCup = 0;
+			// 		gameStore.selectedCup = 0;
 
-						while (true) {
-							if (gameStore.pressingEnter) {
-								break;
-							}
-						}
-						gameStore.hiddenMode = false;
+			// 		while (true) {
+			// 			if (gameStore.pressingEnter) {
+			// 				break;
+			// 			}
+			// 		}
+			// 		gameStore.hiddenMode = false;
 
-						// If selected the correct cup that is gold then good
-						if (gameStore.selectedCup === cupWithGold) {
-							correctSelection = true;
-						}
+			// 		// If selected the correct cup that is gold then good
+			// 		if (gameStore.selectedCup === cupWithGold) {
+			// 			correctSelection = true;
+			// 		}
 
-						if (correctSelection) {
-							gameStore.level += 1;
-						} else {
-							return;
-						}
-						await delay(1000);
-						setScreenState(screen);
-					}
-					break;
-			}
+			// 		if (correctSelection) {
+			// 			gameStore.level += 1;
+			// 		} else {
+			// 			return;
+			// 		}
+			// 		await delay(1000);
+			// 		setScreenState(screen);
+			// 	}
+			// 	break;
 		}
 	}
 
