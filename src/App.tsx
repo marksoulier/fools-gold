@@ -131,7 +131,7 @@ function App() {
 
 		switch (gameStore.phase) {
 			case "MENU":
-				if (!gameStore.pressingEnter) {
+				if (gameStore.wasButtonPressed("up")) {
 					loop();
 					break;
 				}
@@ -193,30 +193,49 @@ function App() {
         break;
 			case "SELECTION":
 				{
-					let correctSelection = false;
+          if (gameStore.wasButtonPressed("up")) {
+            gameStore.currentSelection += 1;
+            if (gameStore.currentSelection > 8) {
+              gameStore.currentSelection = 0;
+            }
+          }
+          if (gameStore.wasButtonPressed("down")) {
+            gameStore.currentSelection -= 1;
+            if (gameStore.currentSelection < 0) {
+              gameStore.currentSelection = 8;
+            }
+          }
+          if (gameStore.wasButtonPressed("enter")) {
+            gameStore.level += 1;
+            gameStore.speed += 3;
+            gameStore.phase = "FINAL"
+            break;
+          }
 
-					gameStore.selectedCup = 0;
-
-					while (true) {
-						if (gameStore.pressingEnter) {
-							break;
-						}
-					}
-
-					// If selected the correct cup that is gold then good
-					if (gameStore.selectedCup === cupWithGold) {
-						correctSelection = true;
-					}
-
-					if (correctSelection) {
-						gameStore.level += 1;
-					} else {
-						return;
-					}
-					await delay(1000);
-					setScreenState(screen);
+          //Display selected fools gold 
+          for (const cup of gameStore.cups) {
+            if (gameStore.cups[gameStore.currentSelection] === cup) {
+              render(selectedFooldsGoldSprite, [Math.floor(cup.position.y), Math.floor(cup.position.x)], screen);
+            } else {
+              render(foolsGoldSprite, [Math.floor(cup.position.y), Math.floor(cup.position.x)], screen);
+            }
+          }
+				  setScreenState(screen);
 				}
 				break;
+      case "FINAL":
+        { 
+          const cup = gameStore.cups.find((cup) => {cup.gold})!
+          render(coinSprite, [Math.floor(cup.position.y), Math.floor(cup.position.x)], screen);
+          setScreenState(screen);
+
+          if (gameStore.wasButtonPressed("enter")) {
+            gameStore.phase = "SETUP"
+            break;
+          }
+
+        }
+        break;
 		}
 	}
 
