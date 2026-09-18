@@ -10,6 +10,12 @@ export interface Cup {
 }
 export type Phase = "MENU" | "SETUP" | "PLAYING" | "SELECTION";
 
+export type ButtonEvent = {
+	kind: "enter" | "up" | "down" | "left" | "right";
+	completed: boolean;
+	timestamp: number;
+};
+
 export class GameStore {
 	// The position of the cup is its index within the array
 	cups: Cup[] = [];
@@ -25,45 +31,93 @@ export class GameStore {
 	speed: number = 0;
 	gameStartTime: number = 0;
 
+	buttonEvents: ButtonEvent[] = [];
+
 	constructor() {
 		window.addEventListener("keydown", (e) => {
 			switch (e.key) {
 				case "Enter":
-					this.pressingEnter = true;
+					this.buttonEvents.push({
+						kind: "enter",
+						completed: false,
+						timestamp: Date.now(),
+					});
 					break;
 				case "ArrowUp":
-					this.pressingUp = true;
+					this.buttonEvents.push({
+						kind: "up",
+						completed: false,
+						timestamp: Date.now(),
+					});
 					break;
 				case "ArrowDown":
-					this.pressingDown = true;
+					this.buttonEvents.push({
+						kind: "down",
+						completed: false,
+						timestamp: Date.now(),
+					});
 					break;
 				case "ArrowLeft":
-					this.pressingLeft = true;
+					this.buttonEvents.push({
+						kind: "left",
+						completed: false,
+						timestamp: Date.now(),
+					});
 					break;
 				case "ArrowRight":
-					this.pressingRight = true;
+					this.buttonEvents.push({
+						kind: "right",
+						completed: false,
+						timestamp: Date.now(),
+					});
 					break;
 			}
 		});
 		window.addEventListener("keyup", (e) => {
 			switch (e.key) {
-				case "Enter":
-					this.pressingEnter = false;
+				case "Enter": {
+					const event = this.buttonEvents.findLast((e) => e.kind === "enter");
+					if (event) {
+						event.completed = true;
+					}
 					break;
-				case "ArrowUp":
-					this.pressingUp = false;
+				}
+				case "ArrowUp": {
+					const event = this.buttonEvents.findLast((e) => e.kind === "up");
+					if (event) {
+						event.completed = true;
+					}
 					break;
-				case "ArrowDown":
-					this.pressingDown = false;
+				}
+				case "ArrowDown": {
+					const event = this.buttonEvents.findLast((e) => e.kind === "down");
+					if (event) {
+						event.completed = true;
+					}
 					break;
-				case "ArrowLeft":
-					this.pressingLeft = false;
+				}
+				case "ArrowLeft": {
+					const event = this.buttonEvents.findLast((e) => e.kind === "left");
+					if (event) {
+						event.completed = true;
+					}
 					break;
-				case "ArrowRight":
-					this.pressingRight = false;
+				}
+				case "ArrowRight": {
+					const event = this.buttonEvents.findLast((e) => e.kind === "right");
+					if (event) {
+						event.completed = true;
+					}
 					break;
+				}
 			}
 		});
+	}
+
+	wasButtonPressed(
+		kind: "enter" | "up" | "down" | "left" | "right",
+	): ButtonEvent | undefined {
+		return this.buttonEvents.findLast((e) => e.kind === kind && e.completed);
 	}
 
 	getlevel() {
