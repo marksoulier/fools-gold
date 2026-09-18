@@ -1,11 +1,14 @@
 /** biome-ignore-all lint/correctness/useJsxKeyInIterable: <explanation> */
-import { useCallback, useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import coinPNG from "../src/assets/coin.png";
 import foolPNG from "../src/assets/fools_gold.png";
 import selectedCoinPNG from "../src/assets/selected_coin.png";
 import selectedFoolsGoldPNG from "../src/assets/selected_fools_gold.png";
-import { type Cup, GameStore, gameStore } from "./GameStore";
+import { type Cup, type GameStore, gameStore } from "./GameStore";
+
+type sprite = number[][][];
+type position = [number, number];
 
 const delay: (arg0: number) => Promise<null> = (ms) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,9 +17,9 @@ const FRAMERATE = 30;
 const SCREEN_WIDTH = 160;
 const SCREEN_HEIGHT = 144;
 const BACKGROUND_COLOR = [250, 232, 188, 255];
+const ROUND_TIME = 5000;
 
-type sprite = number[][][];
-type position = [number, number];
+const CENTER: position = [72, 80];
 
 const loadSprite = async (src: string) => {
 	const img = new Image(24, 24);
@@ -98,14 +101,19 @@ const wipeScreen = () => {
 	}
 	return screen;
 };
-const roundTime = 5; // 5 seconds is how long they are all moving around the screen
+
+let started = false;
 
 function App() {
 	const [screenState, setScreenState] = useState<sprite>([]);
 
 	useEffect(() => {
-		initStore(gameStore);
-		gameLoop();
+		console.log("useeffect");
+		if (!started) {
+			started = true;
+			initStore(gameStore);
+			gameLoop();
+		}
 	}, []);
 
 	async function gameLoop() {
@@ -128,18 +136,21 @@ function App() {
 		switch (gameStore.phase) {
 			case "MENU":
 				if (!gameStore.wasButtonPressed("enter")) {
-					render(coinSprite, [72, 80], screen);
+					render(coinSprite, CENTER, screen);
 					break;
 				}
 				gameStore.phase = "SETUP";
 				break;
 			case "SETUP":
 				{
-					gameStore.speed = 2 + gameStore.level * 3; //number of pixals to move along
+					gameStore.speed = 1; //number of pixals to move along
 					// Set number of cups dependent on level
 					// 1 gold, if level above 3 then 2 gold, if level about 6 then 3 gold
-					const cupWithGold = getRandomIntInclusive(0, 8);
+					const cupWithGold = gameStore.getRandomIntInclusive(0, 8);
+					console.log(cupWithGold);
 					gameStore.cups[cupWithGold].gold = true;
+					console.log(gameStore.cups[cupWithGold].gold);
+					gameStore.cupWithGold = cupWithGold;
 					for (const cup of gameStore.cups) {
 						render(
 							cup.gold ? coinSprite : foolsGoldSprite,
@@ -158,7 +169,7 @@ function App() {
 				break;
 			case "PLAYING":
 				{
-					if (currentLoopStartTime > gameStore.gameStartTime + 5000) {
+					if (currentLoopStartTime > gameStore.gameStartTime + ROUND_TIME) {
 						//5 second round
 						gameStore.phase = "SELECTION";
 						break;
@@ -171,8 +182,8 @@ function App() {
 							cup.destination.x === cup.position.x &&
 							cup.destination.y === cup.position.y
 						) {
-							const randomX = getRandomIntInclusive(20, 140);
-							const randomY = getRandomIntInclusive(20, 124);
+							const randomX = gameStore.getRandomIntInclusive(20, 140);
+							const randomY = gameStore.getRandomIntInclusive(20, 124);
 							cup.destination.x = randomX;
 							cup.destination.y = randomY;
 						}
@@ -180,15 +191,16 @@ function App() {
 						const deltaY = cup.destination.y - cup.position.y;
 						const distanceToDestination = Math.sqrt(deltaX ** 2 + deltaY ** 2);
 						// If the distance to the goal loaction is close then just jump there
+
+						const y = (gameStore.speed * deltaY) / distanceToDestination;
+						const x = (gameStore.speed * deltaX) / distanceToDestination;
+						cup.position.x += x;
+						cup.position.y += y;
+
 						if (distanceToDestination < 5) {
 							cup.position.x = cup.destination.x;
 							cup.position.y = cup.destination.y;
-							break;
 						}
-						const y = (gameStore.speed * deltaX) / distanceToDestination;
-						const x = (gameStore.speed * deltaY) / distanceToDestination;
-						cup.position.x += x;
-						cup.position.y += y;
 						render(
 							foolsGoldSprite,
 							[Math.floor(cup.position.y), Math.floor(cup.position.x)],
@@ -196,7 +208,6 @@ function App() {
 						);
 					}
 				}
-				setScreenState(screen);
 				break;
 			case "SELECTION":
 				{
@@ -213,6 +224,7 @@ function App() {
 						}
 					}
 					if (gameStore.wasButtonPressed("enter")) {
+						console.log("enter pressed");
 						gameStore.level += 1;
 						gameStore.speed += 3;
 						gameStore.phase = "FINAL";
@@ -235,14 +247,11 @@ function App() {
 							);
 						}
 					}
-					setScreenState(screen);
 				}
 				break;
 			case "FINAL":
 				{
-					const cup = gameStore.cups.find((cup) => {
-						cup.gold;
-					})!;
+					const cup = gameStore.cups.find((cup) => cup.gold)!;
 					render(
 						coinSprite,
 						[Math.floor(cup.position.y), Math.floor(cup.position.x)],
@@ -285,18 +294,12 @@ function App() {
 	);
 }
 
-function getRandomIntInclusive(min: number, max: number) {
-	const minCeiled = Math.ceil(min);
-	const maxFloored = Math.floor(max);
-	return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
-}
-
 function initStore(gameStore: GameStore) {
 	let xPos = 0;
 	let yPos = 36;
 	for (let i = 0; i < 9; i++) {
 		xPos += 40;
-		if (xPos > 160) {
+		if (xPos >= 160) {
 			xPos = 40;
 			yPos += 36;
 		}
