@@ -3,6 +3,8 @@ import { useCallback, useEffect, useEffectEvent, useState } from "react";
 import "./App.css";
 import coinPNG from "../src/assets/coin.png";
 import foolPNG from "../src/assets/fools_gold.png";
+import selectedCoinPNG from "../src/assets/selected_coin.png";
+import selectedFoolsGoldPNG from "../src/assets/selected_fools_gold.png";
 import { type Cup, type GameStore, gameStore } from "./GameStore";
 
 const delay: (arg0: number) => Promise<null> = (ms) =>
@@ -57,6 +59,8 @@ const loadSprite = async (src: string) => {
 
 const coinSprite = await loadSprite(coinPNG);
 const foolsGoldSprite = await loadSprite(foolPNG);
+const selectedCoinSprite = await loadSprite(selectedCoinPNG);
+const selectedFooldsGoldSprite = await loadSprite(selectedFoolsGoldPNG);
 
 const render = (sprite: sprite, position: position, screen: sprite) => {
 	const spriteOffset: position = [-12, -12];
@@ -74,7 +78,9 @@ const render = (sprite: sprite, position: position, screen: sprite) => {
 				pixelPosition[1] < 0 ||
 				pixelPosition[1] >= SCREEN_WIDTH
 			)
-				return;
+				continue;
+
+			if (sprite[i][j][3] === 0) continue;
 
 			screen[pixelPosition[0]][pixelPosition[1]] = sprite[i][j];
 		}
