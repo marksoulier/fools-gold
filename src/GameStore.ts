@@ -8,7 +8,7 @@ export interface Cup {
 	destination: Coords;
 	origin: Coords;
 }
-export type Phase = "MENU" | "SETUP" | "PLAYING" | "SELECTION";
+export type Phase = "MENU" | "SETUP" | "PLAYING" | "SELECTION" | "FINAL";
 
 export type ButtonEvent = {
 	kind: "enter" | "up" | "down" | "left" | "right";
@@ -19,7 +19,6 @@ export type ButtonEvent = {
 export class GameStore {
 	// The position of the cup is its index within the array
 	cups: Cup[] = [];
-	selectedCup: number = 0;
 	gameArray: Pixel[][] = [];
 	level: number = 1;
 	phase: Phase = "MENU";
@@ -30,6 +29,7 @@ export class GameStore {
 	pressingRight: boolean = false;
 	speed: number = 0;
 	gameStartTime: number = 0;
+	currentSelection: number = 0;
 
 	buttonEvents: ButtonEvent[] = [];
 
