@@ -5,7 +5,7 @@ import coinPNG from "../src/assets/coin.png";
 import foolPNG from "../src/assets/fools_gold.png";
 import selectedCoinPNG from "../src/assets/selected_coin.png";
 import selectedFoolsGoldPNG from "../src/assets/selected_fools_gold.png";
-import { type Cup, type GameStore, gameStore } from "./GameStore";
+import { type Cup, GameStore, gameStore } from "./GameStore";
 
 const delay: (arg0: number) => Promise<null> = (ms) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
@@ -100,14 +100,10 @@ const wipeScreen = () => {
 };
 const roundTime = 5; // 5 seconds is how long they are all moving around the screen
 
-
 function App() {
 	const [screenState, setScreenState] = useState<sprite>([]);
 
-	console.log("app");
-
 	useEffect(() => {
-		console.log("event");
 		initStore(gameStore);
 		gameLoop();
 	}, []);
@@ -125,14 +121,14 @@ function App() {
 				}, now - nextLoopStartTime);
 		};
 
-		console.log("looping");
+		console.log(gameStore.phase);
 		const screen = wipeScreen();
 		// Level, in mobx store
 
 		switch (gameStore.phase) {
 			case "MENU":
-				if (!gameStore.pressingEnter) {
-					loop();
+				if (!gameStore.wasButtonPressed("enter")) {
+					render(coinSprite, [72, 80], screen);
 					break;
 				}
 				gameStore.phase = "SETUP";
@@ -144,53 +140,64 @@ function App() {
 					// 1 gold, if level above 3 then 2 gold, if level about 6 then 3 gold
 					const cupWithGold = getRandomIntInclusive(0, 8);
 					gameStore.cups[cupWithGold].gold = true;
-          for (const cup of gameStore.cups) {
-            render(cup.gold ? coinSprite : foolsGoldSprite, [cup.position.y, cup.position.x], screen);
-          }
-          setScreenState(screen);
-          await delay(3000);
-          gameStore.gameStartTime = performance.now()
+					for (const cup of gameStore.cups) {
+						render(
+							cup.gold ? coinSprite : foolsGoldSprite,
+							[cup.position.y, cup.position.x],
+							screen,
+						);
+					}
+					setScreenState(screen);
+					console.log("delaying 3s");
+					await delay(3000);
+					console.log("done");
+					gameStore.gameStartTime = performance.now();
 				}
-        gameStore.phase = "PLAYING";
+
+				gameStore.phase = "PLAYING";
 				break;
 			case "PLAYING":
 				{
-          if (currentLoopStartTime > gameStore.gameStartTime + 5000) { //5 second round
-              gameStore.phase = "SELECTION";
-              break;
-          }
-          // for each of the cups move cup towards random position, take difference in x and y
-          for (const cup of gameStore.cups) {
-            // if currentTime is within half second of termination time give final corrediante positions
-            if ( // if destination is equal to position give new destination
-              cup.destination.x === cup.position.x &&
-              cup.destination.y === cup.position.y
-            ) {
-              const randomX = getRandomIntInclusive(20, 140);
-              const randomY = getRandomIntInclusive(20, 124);
-              cup.destination.x = randomX;
-              cup.destination.y = randomY;
-            }
-            const deltaX = cup.destination.x - cup.position.x;
-            const deltaY = cup.destination.y - cup.position.y;
-            const distanceToDestination = Math.sqrt(
-              deltaX ** 2 + deltaY ** 2,
-            );
-            // If the distance to the goal loaction is close then just jump there
-            if (distanceToDestination < 5) {
-              cup.position.x = cup.destination.x
-              cup.position.y = cup.destination.y
-              break;
-            }
-            const y = (gameStore.speed * deltaX) / distanceToDestination;
-            const x = (gameStore.speed * deltaY) / distanceToDestination;
-            cup.position.x += x;
-            cup.position.y += y;
-            render(foolsGoldSprite, [Math.floor(cup.position.y), Math.floor(cup.position.x)], screen);
-          }
-        }
+					if (currentLoopStartTime > gameStore.gameStartTime + 5000) {
+						//5 second round
+						gameStore.phase = "SELECTION";
+						break;
+					}
+					// for each of the cups move cup towards random position, take difference in x and y
+					for (const cup of gameStore.cups) {
+						// if currentTime is within half second of termination time give final corrediante positions
+						if (
+							// if destination is equal to position give new destination
+							cup.destination.x === cup.position.x &&
+							cup.destination.y === cup.position.y
+						) {
+							const randomX = getRandomIntInclusive(20, 140);
+							const randomY = getRandomIntInclusive(20, 124);
+							cup.destination.x = randomX;
+							cup.destination.y = randomY;
+						}
+						const deltaX = cup.destination.x - cup.position.x;
+						const deltaY = cup.destination.y - cup.position.y;
+						const distanceToDestination = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+						// If the distance to the goal loaction is close then just jump there
+						if (distanceToDestination < 5) {
+							cup.position.x = cup.destination.x;
+							cup.position.y = cup.destination.y;
+							break;
+						}
+						const y = (gameStore.speed * deltaX) / distanceToDestination;
+						const x = (gameStore.speed * deltaY) / distanceToDestination;
+						cup.position.x += x;
+						cup.position.y += y;
+						render(
+							foolsGoldSprite,
+							[Math.floor(cup.position.y), Math.floor(cup.position.x)],
+							screen,
+						);
+					}
+				}
 				setScreenState(screen);
-        break;
+				break;
 			case "SELECTION":
 				{
 					let correctSelection = false;
@@ -218,6 +225,8 @@ function App() {
 				}
 				break;
 		}
+		setScreenState(screen);
+		loop();
 	}
 
 	return (
@@ -225,7 +234,6 @@ function App() {
 			{screenState.map((row) => (
 				<div style={{ display: "flex", flexDirection: "row" }}>
 					{row.map((pixel) => {
-						console.log(`pixel ${pixel}`);
 						return (
 							<div
 								style={{
